@@ -8,8 +8,7 @@ const App = {
     },
     methods: {
         randomNumber() {
-            const r = Math.random();
-            return r;
+            return Math.random();
         }
     }
 }
