@@ -150,4 +150,42 @@ This is not valid JavaScript but Vue takes `data` and merges with it the global 
 
 Vue protects against cross-site scripting attacks.
 
-Avoid this pattern if you can.
+```
+const app = Vue.createApp({
+    data() {
+        return {
+            myHtml: '<h1>Hello Vue</h1>',
+        }
+    },
+})
+```
+
+It will stop you outputting raw html when using Interpolation.
+
+```
+<section id="assignment">
+    <div>{{ myHtml }}</div>
+</section>
+```
+
+This will result in the html being outputted as a string, tags included.
+
+Sometimes you want to do this but avoid this pattern if you can. You will be circumventing Vue's default protection.
+
+Use the `v-html` directive.
+
+```
+<section id="assignment">
+    <div v-html="myHtml"></div>
+</section>
+```
+
+You can also call methods with this directive.
+
+## Vue?
+
+Vue uses a declarative approach.
+
+As developers we define the goals; the templates we want.
+
+We mark the parts that are dynamic and Vue updates the DOM on our behalf behind the scenes.
