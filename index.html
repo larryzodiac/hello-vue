@@ -13,21 +13,21 @@
     <script src="app.js" defer></script>
   </head>
   <body>
+    <header>
+      <h1>Events</h1>
+    </header>
     <section id="assignment">
-      <!-- 1) Output your name -->
-      <h2>{{ myName }}</h2>
-      <!-- 2) Output your age -->
-      <p>{{ myAge }}</p>
-      <!-- 3) Output your age + 5 -->
-      <p>{{ myAge + 5 }}</p>
-      <!-- 4) Output a random number (0 to 1) -->
-      <p>{{ randomNumber() }}</p>
-      <div>
-        <!-- 5) Display some image you found via Google -->
-        <img v-bind:src="someImage" width="500"/>
-      </div>
-      <!-- 6) Prepopulate the input field with your name via the "value" attribute -->
-      <input type="text" v-bind:value="myName"/>
+      <h2>Event Practice</h2>
+      <!-- 1) Show an alert (any text of your choice) when the button is pressed -->
+      <button v-on:click="myAlert">Show Alert</button>
+      <hr />
+      <!-- 2) Register the user input on "keydown" and output it in the paragraph (hint: event.target.value helps) -->
+      <input type="text" v-on:input="setName($event, 'fname')" />
+      <p>First Name {{ fname }}</p>
+      <hr />
+      <!-- 3) Repeat 2) but only output the entered value if the ENTER key was pressed -->
+      <input type="text" v-on:input="setName($event, 'lname')" v-on:keyup.enter="confirmLname" />
+      <p>Second Name {{ confirmedLname }}</p>
     </section>
   </body>
 </html>

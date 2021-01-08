@@ -1,17 +1,23 @@
-const App = {
+const app = Vue.createApp({
     data() {
         return {
-            myName: 'Evan',
-            myAge: 25,
-            someImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vue.js_Logo_2.svg/1200px-Vue.js_Logo_2.svg.png'
+            fname: '',
+            lname: '',
+            confirmedLname: '',
         }
     },
     methods: {
-        randomNumber() {
-            return Math.random();
+        myAlert() {
+           alert('Wow')
+        },
+        setName(event, name) {
+            const val = event.target.value;
+            name === 'fname' ? this.fname = val : this.lname = val;
+        },
+        confirmLname() {
+            this.confirmedLname = this.lname;
         }
     }
-}
+})
 
-Vue.createApp(App).mount('#assignment')
-  
+app.mount('#assignment')

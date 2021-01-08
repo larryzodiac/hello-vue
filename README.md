@@ -2,190 +2,232 @@
 
 Learning Vue.
 
-## Vue App Instances
+## Event Binding
 
-Create a Vue instance :
-
-```
-const app = Vue.createApp({})
-```
-
-Mount the app to the html in the DOM you want to control using a unique css id selector :
-
-```
-app.mount('#assignment')
-```
+For reacting to user input we use the `v-on` directive.
 
 ```
 <section id="assignment">
     <h2>Hello World</h2>
-    <p></p>
+    <button v-on:click="counter++">Add</button>
+    <p>{{ counter }}</p>
 </section>
 ```
 
-We can now configure our app.
+The `v-on` directive takes the event you want to listen for. We can listen to all default [events](https://developer.mozilla.org/en-US/docs/Web/Events) available on html elements.
 
-The data properety is reserved in Vue and requires a function as a value.
+## Events & Methods
+
+`counter++` is a single JavaScript expression. We can write more complex code using methods.
+
+We can use The `v-on` directive to _point_(or call()) at method for us when a certain event occurs.
+
+```
+<section id="assignment">
+    <h2>Hello World</h2>
+    <button v-on:click="add">Add</button>
+    <p>{{ counter }}</p>
+</section>
+```
+
+The logic is now outsourced to JavaScript. In Vue, you will typically use methods to connect to events.
 
 ```
 const app = Vue.createApp({
     data: function() {
         return {
-            name: 'Evan'
-        }
-    }
-})
-```
-
-Or with Javascript method shorthand :
-
-```
-const app = Vue.createApp({
-    data() {
-        return {
-            name: 'Evan'
-        }
-    }
-})
-```
-
-This function always requires an object to be returned. Inside that object we can create any key value pair of our choice.
-
-## Interpolation
-
-In html we can reference our returned data object using the `{{ }}` syntax.
-
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <p>{{ name }}</p>
-</section>
-```
-
-## Data Binding
-
-You don't always want to use interpolation. For example, link and image attributes :
-
-```
-const app = Vue.createApp({
-    data() {
-        return {
-            name: 'Evan',
-            myLink: 'https://vuejs.org/'
-        }
-    }
-})
-```
-
-Use the built-in `v-bind` Vue directive.
-
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <p>{{ name }}</p>
-    <a v-bind:href="myLink">Visit Vue</a>
-</section>
-```
-
-## Methods
-
-We can define custom functions in Vue. 
-
-The `methods` property is an object full of functions :
-
-```
-const app = Vue.createApp({
-    data() {
-        return {
-            name: 'Evan',
-            myLink: 'https://vuejs.org/'
+            counter: 0,
         }
     },
     methods: {
-        randomNumber() {
-            return Math.random();
+        add() {
+            this.counter = this.counter + 1;
         }
     }
 })
 ```
 
-We can call a method in our html using Interpolation.
+## Events with Arguments
+
+Often we want to make functions more dynamic by accepting parametres.
+
+```
+const app = Vue.createApp({
+    <!-- ... -->
+    methods: {
+        add(num) {
+            this.counter = this.counter + num;
+        }
+    }
+})
+```
+
+Using the `v-on` directive, we can _call_ a method and pass arguments.
 
 ```
 <section id="assignment">
     <h2>Hello World</h2>
-    <p>{{ name }}</p>
-    <a v-bind:href="myLink">Visit Vue</a>
-    <p>{{ randomNumber() }}</p>
+    <button v-on:click="add(5)">Add</button>
+    <p>{{ counter }}</p>
 </section>
 ```
 
-When using Interpolaion, we can evaluate JavaScript expressions. For example, the ternary operator.
+## Using the Native Event Object
 
-## This
+To capture user input, we can _also_ use the `v-on` directive.
 
-All methods will have their `this` context automatically bound to the Vue instance.
+We can use events like `keyup` or `keydown`, but the best event to use is `input`; a default DOM event availible on an input element.
 
-In `methods` we can access `data` properties using the `this` keyword.
+We can specify to code between the double quotes that should execute when an input event is emitted, which will be the case on every keystroke.
+
+```
+<section id="assignment">
+    <h2>Hello World</h2>
+    <input type="text" v-on:input="setName" />
+    <p>{{ name }}</p>
+</section>
+```
+
+In JavaScript, we can add an event listener to a html element and then point it at a function to be executed when that event occurs.
+
+That function will automatically get an object as an argument describing the event that occured.
+
+In `setName` we can accept that argument as a parametre, naming it however we like.
+
+We can then access the `target` of the event, giving us access to the html element on which the event occurred.
 
 ```
 const app = Vue.createApp({
-    data() {
-        return {
-            name: 'Evan',
-            myLink: 'https://vuejs.org/'
-        }
-    },
+    <!-- ... -->
     methods: {
-        whatIsMyName() {
-            return this.name;
+        setName(event) {
+            this.name = event.target.value;
         }
     }
 })
 ```
 
-This is not valid JavaScript but Vue takes `data` and merges with it the global Vue instance.
+In this example we _pointed_ to the function `setName` and let the browser provide the default object.
 
-## Security
+In the previous example we orverride this by instead _calling_ the function `add` using the `()` soft braces syntax.
 
-Vue protects against cross-site scripting attacks.
+```
+<button v-on:click="add(5)">Add</button>
+```
+
+There might be scenarios where you need to do both.
+
+We can use the reserved `$event` name in Vue.
+
+```
+<section id="assignment">
+    <h2>Hello World</h2>
+    <input type="text" v-on:input="setName($event, 'Mac Hale')" />
+    <p>{{ name }}</p>
+</section>
+```
+
+We now have access to both the event and the argument.
 
 ```
 const app = Vue.createApp({
-    data() {
-        return {
-            myHtml: '<h1>Hello Vue</h1>',
+    <!-- ... -->
+    methods: {
+        setName(event, lastName) {
+            this.name = event.target.value + '' + lastName;
         }
-    },
+    }
 })
 ```
 
-It will stop you outputting raw html when using Interpolation.
+## Event Modifiers
+
+When a button is clicked inside a form, the browser default is to submit that form and send a HTTP request to the server serving the app.
+
+With frameworks like Vue, typically we want to prevent this default and handle this behaviour manually in JavaScript with Vue's help.
+
+```
+<form>
+    <input type="text" />
+    <button>Sign Up</button>
+</form>
+```
+
+Using the `v-on` directive, we can listen for form submission events.
+
+```
+<form v-on:submit="submitForm">
+    <input type="text" />
+    <button>Sign Up</button>
+</form>
+```
+
+We can access the default browser event object passed to the `submitForm` method to _prevent_ the default behaviour.
+
+```
+const app = Vue.createApp({
+    <!-- ... -->
+    methods: {
+        submitForm(event) {
+            event.preventDefault();
+            alert('Submitted!);
+        }
+    }
+})
+```
+
+Instead of this we can use event modifiers with less code.
+
+We can add event modifier with a `.` after an event name.
+
+```
+<form v-on:submit.prevent="submitForm">
+    <input type="text" />
+    <button>Sign Up</button>
+</form>
+```
+
+We can do other things like :
+
+```
+<button v-on:click.right="add(5)">Add</button>
+```
+
+Another example is hitting enter once a user is finished typing.
 
 ```
 <section id="assignment">
-    <div>{{ myHtml }}</div>
+    <h2>Hello World</h2>
+    <input type="text" v-on:input="setName($event, 'Mac Hale')" v-on:keyup.enter="confirmInput" />
+    <p>{{ confirmedName }}</p>
 </section>
 ```
 
-This will result in the html being outputted as a string, tags included.
+```
+const app = Vue.createApp({
+    <!-- ... -->
+    methods: {
+        setName() {
+            this.name = event.target.value + '' + lastName;
+        }
+        confirmInput() {
+            this.confirmedName = this.name
+        }
+    }
+})
+```
 
-Sometimes you want to do this but avoid this pattern if you can. You will be circumventing Vue's default protection.
+## Locking Content with v-once
 
-Use the `v-html` directive.
+We can use the `v-once` directive to preserve the initial value of a data property.
 
 ```
 <section id="assignment">
-    <div v-html="myHtml"></div>
+    <h2>Hello World</h2>
+    <button v-on:click="counter++">Add</button>
+    <p v-once>Starting couter : {{ counter }}</p>
+    <p>Result : {{ counter }}</p>
 </section>
 ```
 
-You can also call methods with this directive.
-
-## Vue?
-
-Vue uses a declarative approach.
-
-As developers we define the goals; the templates we want.
-
-We mark the parts that are dynamic and Vue updates the DOM on our behalf behind the scenes.
+This tells Vue that any dynamic data bindings on this element should only be evaluated once.
