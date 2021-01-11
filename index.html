@@ -14,20 +14,17 @@
   </head>
   <body>
     <header>
-      <h1>Events</h1>
+      <h1>Reactivity in Action</h1>
     </header>
     <section id="assignment">
-      <h2>Event Practice</h2>
-      <!-- 1) Show an alert (any text of your choice) when the button is pressed -->
-      <button v-on:click="myAlert">Show Alert</button>
-      <hr />
-      <!-- 2) Register the user input on "keydown" and output it in the paragraph (hint: event.target.value helps) -->
-      <input type="text" v-on:input="setName($event, 'fname')" />
-      <p>First Name {{ fname }}</p>
-      <hr />
-      <!-- 3) Repeat 2) but only output the entered value if the ENTER key was pressed -->
-      <input type="text" v-on:input="setName($event, 'lname')" v-on:keyup.enter="confirmLname" />
-      <p>Second Name {{ confirmedLname }}</p>
+      <button @click="add(5)">Add 5</button>
+      <button @click="add(1)">Add 1</button>
+      <!-- 1) Connect the buttons and calculate a value (a number) -->
+      <p>{{ counter }}</p>
+      <!-- Show "Not there yet" until you reach a result of exactly 37 -->
+      <!-- Show "Too much!" if the result is greater than 37 -->
+      <p>Result: {{ result }}</p>
+      <!-- 2) Watch for changes in "result" and reset the value to 0 after 5 seconds -->
     </section>
   </body>
 </html>

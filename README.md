@@ -2,232 +2,122 @@
 
 Learning Vue.
 
-## Event Binding
+This page needs editing.
 
-For reacting to user input we use the `v-on` directive.
+## Two Way Binding
 
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <button v-on:click="counter++">Add</button>
-    <p>{{ counter }}</p>
-</section>
-```
+v-model shorthand for v-bind and v-input
 
-The `v-on` directive takes the event you want to listen for. We can listen to all default [events](https://developer.mozilla.org/en-US/docs/Web/Events) available on html elements.
+## Methods used for Data Binding
 
-## Events & Methods
+When data binding a method {{ outputFullname() }} not the best way of doing that.
 
-`counter++` is a single JavaScript expression. We can write more complex code using methods.
+When other v-on events happen, Vue behind the scenes looks for what parts of the page to update. Vue will update e.g {{ counter }}
 
-We can use The `v-on` directive to _point_(or call()) at method for us when a certain event occurs.
+Vue does not know if counter is used in outputFullname() method. So, Vue will update specific part of page and call any interpolated methods.
 
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <button v-on:click="add">Add</button>
-    <p>{{ counter }}</p>
-</section>
-```
+Vue goes ahead, and re-executes any method you're using anywhere in your HTML code between curly braces, or with the v-bind, or with the HTML, so any non-event bound method will be re-executed by Vue, whenever anything on the screen changes.
 
-The logic is now outsourced to JavaScript. In Vue, you will typically use methods to connect to events.
+Performance not so great. e.g log the method in the browser.
 
-```
-const app = Vue.createApp({
-    data: function() {
-        return {
-            counter: 0,
-        }
-    },
-    methods: {
-        add() {
-            this.counter = this.counter + 1;
-        }
-    }
-})
-```
+## Computed Properties
 
-## Events with Arguments
+Solution
 
-Often we want to make functions more dynamic by accepting parametres.
+Computed properties are essentially like methods with one important difference view will be aware of their dependencies(data properties) and only reexecute them if one of the dependencies changed.
 
-```
-const app = Vue.createApp({
-    <!-- ... -->
-    methods: {
-        add(num) {
-            this.counter = this.counter + num;
-        }
-    }
-})
-```
+Third big configuration for our Vue apps.
 
-Using the `v-on` directive, we can _call_ a method and pass arguments.
+We use computed functions like data properties and should name them similarly i.e not setName but name. We do not call them.
 
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <button v-on:click="add(5)">Add</button>
-    <p>{{ counter }}</p>
-</section>
-```
+You can now use the computed method in our html. Never call them, only point and Vue will call it for us.
 
-## Using the Native Event Object
+In the browser console we don't see the computed function call.
 
-To capture user input, we can _also_ use the `v-on` directive.
+You still bind your events to methods.
 
-We can use events like `keyup` or `keydown`, but the best event to use is `input`; a default DOM event availible on an input element.
+You don't bind events to computer properties.
 
-We can specify to code between the double quotes that should execute when an input event is emitted, which will be the case on every keystroke.
+## Watchers
 
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <input type="text" v-on:input="setName" />
-    <p>{{ name }}</p>
-</section>
-```
+Similar to computed properties. A watcher is a function you can tell Vue to execute when one of its dependencies changed.
 
-In JavaScript, we can add an event listener to a html element and then point it at a function to be executed when that event occurs.
+You can use instead of computed properties, but generally shouldn't.
 
-That function will automatically get an object as an argument describing the event that occured.
+Whenever name changes, this watcher method will re execute
 
-In `setName` we can accept that argument as a parametre, naming it however we like.
+You repeat another data or computed property name in a watcher method as a method name there and when you do that, that watcher method will be executed automatically by Vue whenever a property of that name changes.
 
-We can then access the `target` of the event, giving us access to the html element on which the event occurred.
+We do not need to refer to this.name here, a watcher function automatically gets the last value, the latest value of the watch property as an argument.
 
-```
-const app = Vue.createApp({
-    <!-- ... -->
-    methods: {
-        setName(event) {
-            this.name = event.target.value;
-        }
-    }
-})
-```
+Can accept new value and old value as arguments.
 
-In this example we _pointed_ to the function `setName` and let the browser provide the default object.
+Bad because if we have multiple properties to be watched, we need multiple watchers.
 
-In the previous example we orverride this by instead _calling_ the function `add` using the `()` soft braces syntax.
+Whereas in a computeded property we can use one method only and just reference the other dependency. Desiered behaviour with less code.
+
+Watchers are good for individual tasks. E.g resetting a counter, making a http request or setting a timer.
+
+if you wanna run some code, which may be, but not necessarily also updates some data property in reaction to a property changing or if you wanna do that execute code because something changed, then watchers can be helpful.
+
+If you just want to calculate some output value dynamically, computed properties are your friend.
+
+## Methods vs Computed Properties vs Watchers
+
+Use methods with data(interpolation) or event binding.
+
+If you use a method in the data binding use case to outsource logic from the template to your view instance, then the method is executed for every 're-render' cycle of the component.
+
+So whenever something changes and the template is re-evaluated, every method that's called in the template will be called again.
+
+You should use methods primarily for event binding.
+
+Alternatively, for data that really needs to be re-evaluated all of the time.
+
+Otherwise, use computed properties as they can only be used with data binding.
+
+You don't use them with event binding.
+
+Computed Properties are only re-evaluated if one of their dependent data values changes.
+
+So if the data used inside of the computed property changed, they will not be re-evaluated if some other data changed.
+
+Use Computed Properties for data that depends on other data.
+
+Watchers are not directly used in the template.
+
+You can watch any data property and even computed properties.
+
+Watchers allows you to run code in reaction to some change data.
+
+Send a HTTP request, set a timer, store something in local storage,
+
+You should use Watchers for any non data updates you want to make. Whenever you have some behind the scenes work to do based on some changing data.
+
+## `v-bind` and `v-on` Shorthands
+
+`v-on` :
 
 ```
-<button v-on:click="add(5)">Add</button>
+<button v-on:click="add(10)">Add</button>
 ```
 
-There might be scenarios where you need to do both.
-
-We can use the reserved `$event` name in Vue.
+Shorthand is `@`
 
 ```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <input type="text" v-on:input="setName($event, 'Mac Hale')" />
-    <p>{{ name }}</p>
-</section>
+<button @:click="add(10)">Add</button>
 ```
 
-We now have access to both the event and the argument.
+`v-bind` :
 
 ```
-const app = Vue.createApp({
-    <!-- ... -->
-    methods: {
-        setName(event, lastName) {
-            this.name = event.target.value + '' + lastName;
-        }
-    }
-})
+<img v-bind:src="someImage" width="500"/>
 ```
 
-## Event Modifiers
-
-When a button is clicked inside a form, the browser default is to submit that form and send a HTTP request to the server serving the app.
-
-With frameworks like Vue, typically we want to prevent this default and handle this behaviour manually in JavaScript with Vue's help.
+Shorthand is `:`
 
 ```
-<form>
-    <input type="text" />
-    <button>Sign Up</button>
-</form>
+<img :src="someImage" width="500"/>
 ```
 
-Using the `v-on` directive, we can listen for form submission events.
-
-```
-<form v-on:submit="submitForm">
-    <input type="text" />
-    <button>Sign Up</button>
-</form>
-```
-
-We can access the default browser event object passed to the `submitForm` method to _prevent_ the default behaviour.
-
-```
-const app = Vue.createApp({
-    <!-- ... -->
-    methods: {
-        submitForm(event) {
-            event.preventDefault();
-            alert('Submitted!);
-        }
-    }
-})
-```
-
-Instead of this we can use event modifiers with less code.
-
-We can add event modifier with a `.` after an event name.
-
-```
-<form v-on:submit.prevent="submitForm">
-    <input type="text" />
-    <button>Sign Up</button>
-</form>
-```
-
-We can do other things like :
-
-```
-<button v-on:click.right="add(5)">Add</button>
-```
-
-Another example is hitting enter once a user is finished typing.
-
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <input type="text" v-on:input="setName($event, 'Mac Hale')" v-on:keyup.enter="confirmInput" />
-    <p>{{ confirmedName }}</p>
-</section>
-```
-
-```
-const app = Vue.createApp({
-    <!-- ... -->
-    methods: {
-        setName() {
-            this.name = event.target.value + '' + lastName;
-        }
-        confirmInput() {
-            this.confirmedName = this.name
-        }
-    }
-})
-```
-
-## Locking Content with v-once
-
-We can use the `v-once` directive to preserve the initial value of a data property.
-
-```
-<section id="assignment">
-    <h2>Hello World</h2>
-    <button v-on:click="counter++">Add</button>
-    <p v-once>Starting couter : {{ counter }}</p>
-    <p>Result : {{ counter }}</p>
-</section>
-```
-
-This tells Vue that any dynamic data bindings on this element should only be evaluated once.
+There is no `v-model` shortcut.
