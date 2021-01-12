@@ -1,40 +1,29 @@
-const app = Vue.createApp({
-  data() {
-    return {
-      counter: 0,
-    };
-  },
-  methods: {
-    add(value) {
-      this.counter = this.counter + value;
+const app =  Vue.createApp({
+    data() {
+        return {
+            classInput: '',
+            paragraph: true,
+            backgroundInput: ''
+        }
     },
-  },
-  computed: {
-    result() {
-      console.log("hello");
-      if (this.counter < 37) {
-        return "Not there yet";
-      } else if (this.counter > 37) {
-        return "Too much!";
-      } else {
-        return this.counter;
-      }
+    methods: {
+        toggleParagraph() {
+            this.paragraph = !this.paragraph;
+        },
+        backgroundToAdd() {
+            return this.backgroundInput
+        }
     },
-  },
-  watch: {
-    result() {
-      console.log("hello watcher");
-      const that = this;
-      //   Interesting....
-      //   const that = this;
-      //   setTimeout(function () {
-      //     this.counter = 0;
-      //   }, 5000);
-      setTimeout(() => {
-        this.counter = 0;
-      }, 5000);
-    },
-  },
-});
+    computed: {
+        paragraphClasses() {
+            return {
+                user1: this.classInput === 'user1',
+                user1: this.classInput === 'user1',
+                visible: this.paragraph,
+                hidden: !this.paragraph
+            }
+        }
+    }
+})
 
-app.mount("#assignment");
+app.mount('#assignment')

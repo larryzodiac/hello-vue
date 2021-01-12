@@ -35,7 +35,7 @@ header {
   margin: 0 0 1rem 0;
 }
 
-#assignment p {
+p {
   font-size: 1.25rem;
   font-weight: bold;
   background-color: #8ddba4;
@@ -70,4 +70,22 @@ header {
   background-color: #ec3169;
   border-color: #ec3169;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.26);
+}
+
+.user1 {
+  background-color: blue;
+  color: white;
+}
+
+.user2 {
+  background-color: purple;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
 }
