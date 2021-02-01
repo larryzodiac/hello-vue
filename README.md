@@ -2,270 +2,379 @@
 
 Learning Vue.
 
-[vue-router](https://router.vuejs.org/guide/).
+## `v-model` & Inputs
 
-## Registering & Rendering Routes
+When buttons are inside of forms, you typically want to listen to the form submit event instead.
 
-```
-const router = createRouter({
-    history: createWebHistory(),
-    routes: [
-        { path: '/teams', component: TeamsList }
-    ]
-});
+You add the `prevent` modifier to ensure that when form submission occurs, we don't have the browser default.
 
-const app = createApp(App);
-
-app.use(router);
-
-app.mount('#app');
-```
-
-`app.use()` makes our Vue app aware of routes.
-
-Built-in `<router-vue />` component tells router that this is the place where the selected _routed to component_ should be loaded.
-
-## Navigating with router-link
-
-`router-link` renders a special anchor tag which will not load a different page & reload the entire app, & hence loose the current state.
-
-The browser default of loading a different page is prevented. Instead, the view router takes over analyses the link the user clicked, downloads the appropriate component & updates the URL.
+This would send a request & would result in a page reload, which in the end, restarts our app & loses all our data.
 
 ```
-<router-link to="/teams">Teams</router-link>
-```
-
-## Styling Links
-
-`<router-link />` adds special css classes to links that are currently selected.
-
-```
-a:router-link-active {
-    color: #f1a80a;
-}
-```
-
-There is also a `router-link-exact-active` class added for use with nested links.
-
-You can configure these css classes in `createRouter`.
-
-```
-const router = createRouter({
-    history: createWebHistory(),
-    routes: [
-        { path: '/teams', component: TeamsList }
-    ],
-    linkActiveClass: 'active'
-});
-```
-
-## Programmatic Navigation
-
-There will be scenarios where you will want to click a button, send some data, then redirect, etc.
-
-This is programmatic navigation. Routing without seleecting a `<router-link />` component. We don't just want to navigate away, we want to perform a task.
-
-```
-<button @click="confirmInput">Confirm</button>
-```
-
-Our vue app gives us accesss to a special `$router` property on which we can call various methods.
-
-```
-methods: {
-    confirmInput() {
-        this.$router.push('/teams');
-    }
-}
-```
-
-We also have `back()` & `forward()` to emulate the browser buttons.
-
-## Passing Data with Route Params (Dynamic Segments)
-
-You define a dynamic segment by aadding a colon.
-
-```
-routes: [
-    { path: '/teams', component: TeamsList }
-    { path: '/teams/:teamId', component: TeamsMembers }
-]
-```
-
-The route will become active if the user enters `/teams` & anything after.
-
-The order matters.
-
-```
-routes: [
-    { path: '/teams', component: TeamsList }
-    { path: '/teams/:teamId', component: TeamsMembers }
-    { path: '/teams/new' }
-]
-```
-
-You should place other routes that are not dynamic segments first. Otherwise
-
-In this case, the path '/teams/:teamId' would match '/teams/new' because _new_ would be interpreted as a _teamId_.
-
-We can get access to the value the user entered in the browser URL via the loaded component.
-
-In the loaded router component we can access `$route` to get the route parametres.
-
-```
-export default {
-    inject: ['users', 'teams'],
-    components: {
-        UserItem
-    },
-    data() {
-        return { // ... }
-    },
-    created() {
-        const teamId = this.$route.params.teamId;
-        const selectedTeam = this.teams.find(team => team.id === teamId)
-        // ...
-    }
-}
-```
-
-We used the path `/teams/:teamId` which means we can access the parametre through `this.route.params.teamId`.
-
-## Navigation & Dynamic Paths
-
-If we want the id of each team id to be different we can use `router-link`.
-
-We bind an id prop to the `to` attributte which then points at a JavaScript Expression.
-
-```
-<router-link :to="'/teams/' + id">View Members</router-link>
-```
-
-You can also use computed properties in this scenario :
-
-```
-<router-link :to="'/teams/' + id">View Members</router-link>
-```
-
-```
-export default {
-    props: ['id', 'name', 'memberCount']
-    computed: {
-        teamMembersLink() {
-            return '/teams/' + this.id;
-        }
-    }
-}
-```
-
-## Updating Params Data with Watchers
-
-Route parametres can be tricky.
-
-Consider om a page that was loaded for a given parameter, you want to click a button & go to the same page with a _different_ parametre.
-
-```
-// ... Bottom of page
-<router-link to="/teams/t2">Go to Team 2</router-link>
-```
-
-You will face this problem of nothing happening.
-
-If you start at `t1`, the URL will update to `t2` but the data on screen will not change.
-
-This is an intended behavior.
-
-The view router does not destroy & rebuild the components that were loaded when you navigate around.
-
-It's more efficient to cash them than to always destroy & rebuild them when the URL changes.
-
-Therefore, the code in `created` does not run again when the URL changed.
-
-```
-export default {
+<form @submit.prevent="submitForm">
     // ...
-    created() {
-        const teamId = this.$route.params.teamId;
-        const selectedTeam = this.teams.find(team => team.id === teamId)
-        // ...
-    }
-}
+    <div>
+        <button>Save Data</button>
+    </div>
+</form>
 ```
 
-When the URL changes, the `$route` property changes. It will always hold the latest parametre.
+We have two main ways of getting data out of inputs.
 
-Therefore, you can use a _watcher_ in this scenario.
+We use `v-model` or our own custom `@input` event listener. E.g, listening to every keystroke & storing what the user entered in some data property.
+
+This is perfectly fine & especially useful if you want to validate an input element on every keystroke to show an error message before the user tries to submit anything.
+
+If you use the `v-model`, you can use two way binding. This can help with resetting the form.
+
+With two way binding, you can not only listen to what the user entered, but also overwrite what's in the form & you can change the value which is stored in an input.
 
 ```
-export default {
+<form @submit.prevent="submitForm">
     // ...
-    methods: {
-        loadTeamMembers(route) {
-            const teamId = route.params.teamId;
-            const selectedTeam = this.teams.find(team => team.id === teamId)
-            // ...
-        }
-    },
-    created() {
-        this.loadTeamMembers(this.$route);
-    },
-    watch: {
-        $route(newRoute) {
-            this.loadTeamMembers(newRoute);
-        }
-    }
-}
+    <input id="user-name" name="user-name" type="text" v-model="userName" />
+    <div>
+        <button>Save Data</button>
+    </div>
+</form>
 ```
-
-This is one way to solve this problem.
-
-## Passing Params as Props
-
-The previous _TeamMembers_ component has one potential disadvantage. It is only loadable through routing.
-
-It relies on `$route` which is used in `created()` & `watch`.
-
-It would be problematic when we wish to use this component elsewhere.
-
-It might be better if _TeamMembers_ would be loaded such that you get `teamId` as a prop.
 
 ```
 export default {
-    props: ['teamId']
+  data() {
+    return {
+      userName: '',
+    };
+  },
+  methods: {
+    submitForm() {
+      console.log('Username: ' + this.userName);
+      this.userName = '';
+    },
+  },
+};
+```
+
+For this form we want to use `v-model`.
+
+This means that Vue will automatically detect every keystroke & update the value stored in `username`.
+
+Also, when we change what's stored in `username` with our code(e.g, when the form is submitted & we reset the value), changes will also be reflected in the input.
+
+## `v-model` Modifiers & Numbers
+
+There can be a common bug in Vue where you will think you've got a number from an input of `type="number"` when actually you are working with a string.
+
+Be aware that if using `v-model` on an input of `type="number"` it will automatically fetch the user input & _convert_ it from a string to a number data type.
+
+```
+<input id="age" name="age" type="number" v-model="userAge" ref="ageInput"/>
+```
+
+If you are using just JavaScript or the `refs` attribute(the native JavaScript object representing this input), by default, what's stored in the value is always a string.
+
+```
+export default {
+  data() {
+    return {
+      userName: '',
+      userAge: null
+    };
+  },
+  methods: {
+    submitForm() {
+      // ...
+      console.log('User age:');                         // If input submitted was 30
+      console.log(this.userAge + 5);                    // 35   // Number
+      console.log(this.$refs.ageInput.value + 5);       // 305  // Concatenated string
+      console.log(31);                                  // 31   // Number
+      this.userAge = null;
+    },
+  },
+};
+```
+
+This is an extra feature added by Vue & `v-model` which sees that an input is of `type="number"` & will therefore convert the default string value to a number of value for you.
+
+You can also force this behaviour with other input types.
+
+```
+<input id="age" name="age" type="text" v-model.number="userAge" ref="ageInput"/>
+```
+
+Note the `v-model` modifiers:
+
+- `v-model.lazy`
+- `v-model.number`
+- `v-model.trim`
+
+## `v-model` & Dropdowns
+
+`v-model` works on dropdowns in the same way as input elements.
+
+```
+<form @submit.prevent="submitForm">
+    // ...
+    <div class="form-control">
+        <label for="referrer">How did you hear about us?</label>
+        <select id="referrer" name="referrer" v-model="referrer">
+            <option value="google">Google</option>
+            <option value="wom">Word of mouth</option>
+            <option value="newspaper">Newspaper</option>
+        </select>
+    </div>
+    // ...
+</form>
+```
+
+With dropdowns, you will want to start with a default choice.
+
+```
+export default {
+  data() {
+    return {
+      userName: '',
+      userAge: null,
+      referrer: 'Google'
+    };
+  },
+  methods: {
+    submitForm() {
+      // ...
+      console.log('Referrer: ' + this.referrer);
+      this.referrer = 'Google';
+    },
+  },
+};
+```
+
+## `v-model` with Checkboxes & Radiobuttons
+
+`v-model` works on checkboxes & radiobuttons too.
+
+On every input element we will add `v-model` as an atrribute.
+
+Remember to add a `value` attriubte to each element which acts as a unique identifier.
+
+```
+<div class="form-control">
+  <h2>What are you interested in?</h2>
+  <div>
+    <input
+      id="interest-news"
+      name="interest"
+      type="checkbox"
+      value="news"
+      v-model="interest"
+    />
+    <label for="interest-news">News</label>
+  </div>
+  // ...
+</div>
+<div class="form-control">
+  <h2>How do you learn?</h2>
+  <div>
+    <input
+      id="how-video"
+      name="how"
+      type="radio"
+      value="video"
+      v-model="how"
+    />
+    <label for="how-video">Video Courses</label>
+  </div>
+  // ...
+</div>
+<div class="form-control">
+  <input
+    type="checkbox"
+    id="confirm-terms"
+    name="confirm-terms"
+    v-model="confirm"
+  />
+  <label for="confirm-terms">Agree to terms of use?</label>
+</div>
+```
+
+When working with multiple checkboxes of the same name, JavaScript automatically creates a group of these checkboxes.
+
+In this case, we create an empty array as a starting data property value & Vue will then add all checked elements to this array.
+
+If you have a group of checkboxes which share the same `name` attribute value, you will get an array where all the check values will be elements in.
+
+If you have a single checkbox for a given name value, then you get true or false.
+
+```
+export default {
+  data() {
+    return {
+      // ...
+      interest: [],
+      how: null,
+      confirm: false,
+    };
+  },
+  methods: {
+    submitForm() {
+      // ...
+      cconsole.log("Checkboxes");
+      console.log(this.interest);
+      console.log("Radio buttons");
+      console.log(this.how);
+      this.interest = [];
+      this.how = null;
+      console.log("Confirm?");
+      console.log(this.confirm);
+      this.confirm = false;
+    },
+  },
+```
+
+## Basic Form Validation
+
+A very basic example using the built-in `@blur` event.
+
+It is good to be aware of the many ways to validate.
+
+```
+<div
+  class="form-control"
+  :class="{ invalid: userNameValidity === 'invalid' }"
+>
+  <label for="user-name">Your Name</label>
+  <input
+    id="user-name"
+    name="user-name"
+    type="text"
+    v-model.trim="userName"
+    @blur="validateInput"
+  />
+  <p v-if="userNameValidity === 'invalid'">Please enter a valid name!</p>
+</div>
+```
+
+```
+export default {
+  data() {
+    return {
+      // ...
+      userNameValidity: "pending",
+    };
+  },
+  methods: {
+    submitForm() {
+      // ...
+    },
+    validateInput() {
+      if (this.userName === "") {
+        this.userNameValidity = "invalid";
+      } else {
+        this.userNameValidity = "valid";
+      }
+    },
+  },
+```
+
+## Custom Control Component
+
+Create a `RatingControl.vue` component with three options.
+
+```
+<template>
+  <ul>
+    <li :class="{active: modelValue === 'poor'}">
+      <button type="button" @click="activate('poor')">Poor</button>
+    </li>
+    <li :class="{active: modelValue === 'average'}">
+      <button type="button" @click="activate('average')">Average</button>
+    </li>
+    <li :class="{active: modelValue === 'great'}">
+      <button type="button" @click="activate('great')">Great</button>
+    </li>
+  </ul>
+</template>
+```
+
+We want to keep track of which rating is selected.
+
+```
+export default {
+  data() {
+    return {
+      activeOption: null,
+    };
+  },
+  methods: {
     methods: {
-        loadTeamMembers(teamId) {
-            const selectedTeam = this.teams.find(team => team.id === teamId)
-            // ...
-        }
+    activate(option) {
+      this.$emit('update:modelValue', option);
     },
-    created() {
-        this.loadTeamMembers(this.teamId);
+  },
+},
+```
+
+We need to connect this component to our form.
+
+We can use our `<rating-control/>` component like the `input` elements in our form using `v-model`.
+
+We can bind the value that this `<rating-control/>` has internally to some data property stored in the form component.
+
+`v-model` is shorthand for the `@input=""` & `:value=""` attributes which are specific to `input` elements.
+
+However, Vue supports using `v-model` on components too.
+
+```
+<div class="form-control">
+  <rating-control v-model="rating"></rating-control>
+</div>
+```
+
+If you use `v-model` on a component, it will set the very specific _prop_ in that component & it will listen to a very specific _event_, which you can emit in that component.
+
+```
+export default {
+  props: ['modelValue'],
+  emits: ['update:modelValue'],
+  //  data() {
+  //    return {
+  //      activeOption: this.modelValue,
+  //    };
+  //  },
+  //  computed: {
+  //    activeOption() {
+  //      return this.modelValue;
+  //    }
+  //  },
+  methods: {
+    methods: {
+    activate(option) {
+      this.$emit('update:modelValue', option);
     },
-    watch: {
-        teamId(newId) {
-            this.loadTeamMembers(newId);
-        }
-    }
-}
+  },
+},
 ```
 
-However, if we change `$route` for a `teamId` props, the router by default does not add any props to a loaded component.
+Using `v-model` on a custom component is like manually binding the `:model-value=""` prop & the `@update:modelValue=""` event.
 
-We can change this in the router config by adding the _prop_ option to a route.
+Now, back in our form.
 
 ```
-routes: [
-    { path: '/teams', component: TeamsList }
-    { path: '/teams/:teamId', component: TeamsMembers, props:true }
-]
+export default {
+  data() {
+    return {
+      // ...
+      rating: null,
+    };
+  },
+  methods: {
+    submitForm() {
+      // ...
+      console.log("Rating");
+      console.log(this.rating);
+      this.rating = null;
+    },
+    validateInput() {
+      // ...
+    },
+  },
 ```
-
-This tells the view router that dynamic parametres should be passed into this component as _props_ rather than just on the `$route` property.
-
-This component is not strictly tied to routing anymore.
-
-## Redirecting & Catch All Routes
-
-Most users will reach a page by entering your domain in the URL. There will be scenarios where there will be no matching routes.
-
-We want to handle this & display something else on screen.
