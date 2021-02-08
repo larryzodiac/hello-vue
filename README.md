@@ -269,3 +269,256 @@ This component is not strictly tied to routing anymore.
 Most users will reach a page by entering your domain in the URL. There will be scenarios where there will be no matching routes.
 
 We want to handle this & display something else on screen.
+
+## Nested Routes
+
+```
+routes: [
+  { path: "/", redirect: "/teams" },
+  {
+    name: "teams",
+    path: "/teams",
+    component: TeamsList,
+    children: [
+      {
+        name: "team-members",
+        path: ":teamId",
+        component: TeamMembers,
+      },
+    ],
+  },
+  // ..
+]
+```
+
+No longer registered directly in routes, so will not appear in the root router.
+
+You need to add another `<router-view />` in the component where the nested route is defined as a child route.
+
+As a side note, nested routes make the root route active with css.
+
+## More Fun with Nested Routes & Location Objects
+
+Vue offers useful features that help us with heavily nested router apps.
+
+The `<router-link />`'s `:to` prop does not only take a string; you can alternatively pass an object.
+
+This becomes more useful when combined with _named routes_.
+
+```
+computed: {
+  teamMembersLink() {
+    // return '/teams/' + this.id;
+    return {
+      name: 'team-members',
+      params: { teamId: this.id },
+    };
+    // this.$router.push({ name: 'team-members', params: { teamId: this.id } });
+  },
+},
+```
+
+Very readable & maintainable. Anytime you wish to change the route, the name stays the same.
+
+You can also navigate programatically using `push()`.
+
+## Query Params
+
+A query parameter is an optional route parameter which is not needed to find & load a component, but which may be used to pass extra information into that component.
+
+They are not defined in the route config.
+
+```
+return {
+  name: 'team-members',
+  params: { teamId: this.id },
+  query: { sort: 'asc' },
+};
+```
+
+You can extract it using `this.$route.query`. 
+
+```
+created() {
+  // this.$route.path // /teams/t1
+  this.loadTeamMembers(this.teamId);
+  console.log(this.$route.query);
+},
+```
+
+They cannot be passed as props, e.g `this.query`.
+
+## Rendering Multiple Routes with Named Router Views
+
+You can have multiple `<router-views/>` on the same level.
+
+```
+<template>
+  <the-navigation></the-navigation>
+  <main>
+    <router-view></router-view>
+  </main>
+  <footer>
+    <router-view></router-view>
+  </footer>
+</template>
+```
+
+Not too helpful, but instead we can load multiple components per-route & send them to certain `<router-view/>`s.
+
+Instead of just having one component in a route, we can many _components_.
+
+```
+{
+  name: "teams",
+  path: "/teams",
+  components: { default: TeamsList, footer: TeamsFooter },
+  children: [
+    {
+      name: "team-members",
+      path: ":teamId",
+      component: TeamMembers,
+    },
+  ],
+},
+```
+
+We can then name a second `<router-view/>`.
+
+```
+<template>
+  <the-navigation></the-navigation>
+  <main>
+    <router-view></router-view>
+  </main>
+  <footer>
+    <router-view name="footer"></router-view>
+  </footer>
+</template>
+```
+
+## Controlling Scroll Behaviour
+
+Whenever we switch a route, scroll to the top.
+
+This is something we can add in the vue router; You can add a scroll behavior property, which is actually a method.
+
+This method will be called by the router whenever your page changes. The scroll behavior method will then receive arguments automatically.
+
+`to` & `from` are route objects that you would get with `this.$route` inside a loaded component.
+
+`savedPosition` is only set if using the back button.
+
+If you log it, you see it is an object with a left and a top property describing where the user scrolled to on the previous page.
+
+```
+const router = createRouter({
+  // ...
+  scrollBehavior( to, from, savedPosition) { ... },
+});
+```
+
+```
+const router = createRouter({
+  // ...
+  // _, _2 are indicators to not use.
+  scrollBehavior(_, _2, savedPosition) {
+    // If we do go back, use previous position
+    if (savedPosition) {
+      return savedPosition;
+    }
+    // No saved position? Scroll user to top
+    return { left: 0, top: 0 };
+  },
+});
+```
+
+## Introducing Navigtion Guards
+
+Functions/methods which are called automatically by router when a navigation action started.
+
+`beforeEach` requires a function as an argument. It will be called by the router whenever we navigate from one page to another.
+
+It takes arguments `to`, `from` & `next` which is a function we have to call to either confirm or deny the navigation action.
+
+```
+router.beforeEach(function(to, from, next) {
+  // Can use an if
+  next();
+});
+```
+
+Can say `next(false)` to deny.
+
+Later we'll also see how we could use that feature in combination with checking whether a user is authenticated or not.
+
+## Diving Deeper into Navigation Guards
+
+The previous `beforeEach` would run for every route. Sometimes you just want to protect individual routes.
+
+Use `beforeEnter()` :
+
+```
+{
+  path: "/users",
+  components: {
+    default: UsersList,
+    footer: UsersFooter,
+  },
+  beforeEnter(to, from, next) {
+    console.log("users beforeEnter");
+    console.log(to, from);
+    next();
+  },
+},
+```
+
+If you don't want these in your config, you can use them in component lifecycle :
+
+```
+export default {
+  // ...
+  beforeRouteEnter(to, from, next) {
+    console.log('UsersList Cmp beforeRouteEnter');
+    console.log(to, from);
+    next();
+  },
+}
+```
+
+This is the order in which guards are executed. Global first, then route & then component level.
+
+Next is `beforeRouteUpdate` which we call in components that are reused.
+
+```
+export default {
+  // ...
+  beforeRouteUpdate(to, from, next) {
+    // this.loadTeamMembers(to.params.teamId);
+    next();
+  },
+}
+```
+
+## Global "afterEach" Guard
+
+`afterEach` will run when a navigation is confirmed. Cannot use it to control what the user sees.
+
+Could be handy for sending analytics for example.
+
+It does not take `next`.
+
+```
+router.afterEach(function(to, from) {
+  // sending analytics data
+  console.log(to, from);
+});
+```
+
+## Beyond Entering: Route Leave Guards
+
+There is a useful guard triggered when a user wants to leave a page.
+
+Of course, when you leave a page & go to another, all before guards are triggered. You also want to run some code on the component
+
+that is being left right before it's being left.
