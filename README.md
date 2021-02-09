@@ -519,6 +519,61 @@ router.afterEach(function(to, from) {
 
 There is a useful guard triggered when a user wants to leave a page.
 
-Of course, when you leave a page & go to another, all before guards are triggered. You also want to run some code on the component
+Of course, when you leave a page & go to another, all before guards are triggered.
 
-that is being left right before it's being left.
+You might want to run some code on the component that is being left right before it's being left.
+
+You could use `unmounted` lifecycle hook, but this runs after the navigation has been confirmed. It gives us no way to cancel the navigation.
+
+Example use case is form validation or hitting the back button accidentally.
+
+```
+beforeRouteLeave(to, from, next) {
+  data() {
+    return { changesSaved: false }
+  }
+  // ...
+  if (this.changesSaved) {
+    next();
+  } else {
+    const userWantsToLeave = confirm('Are you sure? You got unsaved changes!');
+    next(userWantsToLeave);
+  }
+},
+```
+
+## Utilising Route Metadata
+
+On any given route you can add an extra property `meta:{}` where you can store any type of values.
+
+```
+{
+  name: 'teams',
+  path: '/teams',
+  meta: { needsAuth: true },
+  components: { default: TeamsList, footer: TeamsFooter },
+  children: [
+    {
+      name: 'team-members',
+      path: ':teamId',
+      component: TeamMembers,
+      props: true
+    } // /teams/t1
+  ]
+},
+```
+
+You can access this meta field where the route object is available, i.e the dollar sign route object.
+
+For example, you could check in every global `beforeEach` if a user is authenticated.
+
+```
+router.beforeEach(function(to, from, next) {
+  if (to.meta.needsAuth) {
+    console.log('Needs auth!');
+    next();
+  } else {
+    next();
+  }
+});
+```
