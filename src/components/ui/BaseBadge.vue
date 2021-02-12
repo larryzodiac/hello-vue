@@ -1,13 +1,13 @@
 <template>
-  <span class="badge" :class="['badge--' + mode, {nml: noMarginLeft}]">
+  <span class="badge" :class="['badge--' + mode, { nml: noMarginLeft }]">
     <slot></slot>
   </span>
 </template>
 
 <script>
 export default {
-  props: ['mode', 'noMarginLeft']
-}
+  props: ["mode", "noMarginLeft"]
+};
 </script>
 
 <style scoped>
