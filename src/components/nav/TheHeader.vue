@@ -10,7 +10,7 @@
         </li>
         <li>
           <router-link to="/cart">Cart</router-link>
-          <base-badge mode="elegant">{{ cart.qty }}</base-badge>
+          <base-badge mode="elegant">{{ $store.state.cart.qty }}</base-badge>
         </li>
         <li v-if="$store.state.isLoggedIn">
           <router-link to="/admin">Admin</router-link>
@@ -26,7 +26,6 @@
 
 <script>
 export default {
-  inject: ["cart"],
   methods: {
     login() {
       this.$store.commit("login");

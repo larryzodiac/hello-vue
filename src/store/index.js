@@ -46,7 +46,6 @@ export default createStore({
       const productInCartIndex = state.cart.items.findIndex(
         ci => ci.productId === payload.id
       );
-
       if (productInCartIndex >= 0) {
         state.cart.items[productInCartIndex].qty++;
       } else {
@@ -61,6 +60,15 @@ export default createStore({
       }
       state.cart.qty++;
       state.cart.total += payload.price;
+    },
+    removeProductFromCart(state, payload) {
+      const productInCartIndex = state.cart.items.findIndex(
+        cartItem => cartItem.productId === payload.prodId
+      );
+      const prodData = state.cart.items[productInCartIndex];
+      state.cart.items.splice(productInCartIndex, 1);
+      state.cart.qty -= prodData.qty;
+      state.cart.total -= prodData.price * prodData.qty;
     }
   },
   actions: {},
