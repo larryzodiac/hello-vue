@@ -10,7 +10,7 @@
         </li>
         <li>
           <router-link to="/cart">Cart</router-link>
-          <base-badge mode="elegant">{{ $store.state.cart.qty }}</base-badge>
+          <base-badge mode="elegant">{{ cartQuantity }}</base-badge>
         </li>
         <li v-if="$store.state.isLoggedIn">
           <router-link to="/admin">Admin</router-link>
@@ -28,10 +28,15 @@
 export default {
   methods: {
     login() {
-      this.$store.commit("login");
+      this.$store.dispatch("setLogin");
     },
     logout() {
-      this.$store.commit("logout");
+      this.$store.dispatch("setLogout");
+    }
+  },
+  computed: {
+    cartQuantity() {
+      return this.$store.getters["cart/quantity"];
     }
   }
 };
